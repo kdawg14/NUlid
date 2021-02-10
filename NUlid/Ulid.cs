@@ -111,7 +111,7 @@ namespace NUlid
         {
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
-            if ( bytes.Length != 16)
+            if (bytes.Length != 16)
                 throw new ArgumentException("An array of 16 elements is required", nameof(bytes));
 
             _a = bytes[0];
@@ -136,7 +136,7 @@ namespace NUlid
         /// Initializes a new instance of the <see cref="Ulid"/> structure by using the specified <see cref="Guid"/>
         /// </summary>
         /// <param name="guid">A <see cref="Guid"/> representing a <see cref="Ulid"/>.</param>
-        public Ulid(Guid guid) => this = new Ulid(guid.ToByteArray());
+        public Ulid(Guid guid) => this = new Ulid(FixGuidByteArrayEndianness(guid.ToByteArray()));
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Ulid"/> structure by using the value represented by the
@@ -243,6 +243,21 @@ namespace NUlid
             }
             throw new InvalidOperationException("Invalid length");
         }
+
+        /// <summary>
+        /// Fix the byte encoding to/from a Guid byte array.
+        /// See https://en.wikipedia.org/wiki/Universally_unique_identifier#Encoding for information on 
+        /// Microsoft's Guid format, and https://stackoverflow.com/a/16722909 for a solution.
+        /// </summary>
+        /// <param name="bytes">The byte array to be corrected.</param>
+        /// <returns>The same byte array passed in.</returns>
+        private static byte[] FixGuidByteArrayEndianness(byte[] bytes)
+        {
+            Array.Reverse(bytes, 0, 4);
+            Array.Reverse(bytes, 4, 2);
+            Array.Reverse(bytes, 6, 2);
+            return bytes;
+        }
         #endregion
 
         /// <summary>
@@ -314,7 +329,7 @@ namespace NUlid
         /// Returns a <see cref="Guid"/> that represents the value of this instance.
         /// </summary>
         /// <returns>A <see cref="Guid"/> that represents the value of this instance.</returns>
-        public Guid ToGuid() => new Guid(ToByteArray());
+        public Guid ToGuid() => new Guid(FixGuidByteArrayEndianness(ToByteArray()));
 
         /// <summary>
         /// Returns a value indicating whether this instance and a specified <see cref="Ulid"/> object represent the

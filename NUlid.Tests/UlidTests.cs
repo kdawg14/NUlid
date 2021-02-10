@@ -66,6 +66,35 @@ namespace NUlid.Tests
         }
 
         [TestMethod]
+        public void Ulid_ConvertedTo_Guid_MaintainsSortOrder()
+        {
+            //Chosen because the non-corrected GUIDs that are created from these ULIDs result in the
+            //GUID created from the larger ULID lexicographically smaller than the GUID created from the
+            //smaller ULID; specifically:
+            // - smallerGuid: {43867701-fffd-0600-1c67-0bd309234c7c} rather than {01778643-fdff-0006-1c67-0bd309234c7c}
+            // - largerGuid:  {43867701-00fe-0000-2a61-953560310b0f} rather than {01778643-fe00-0000-2a61-953560310b0f}
+            var smallerUlid = Ulid.Parse("01EY347ZFZ0031RSRBTC4J6K3W");
+            var largerUlid = Ulid.Parse("01EY347ZG00002MRCN6NG322RF");
+            Assert.AreEqual(-1, smallerUlid.CompareTo(largerUlid));
+            
+            var smallerGuid = smallerUlid.ToGuid();
+            var largerGuid = largerUlid.ToGuid();
+            Assert.AreEqual(-1, smallerGuid.CompareTo(largerGuid));
+        }
+
+        [TestMethod]
+        public void Guid_ConvertedTo_Ulid_MaintainsSortOrder()
+        {
+            var smallerGuid = Guid.Parse("01778643-fdff-0006-1c67-0bd309234c7c");
+            var largerGuid = Guid.Parse("01778643-fe00-0000-2a61-953560310b0f");
+            Assert.AreEqual(-1, smallerGuid.CompareTo(largerGuid));
+
+            var smallerUlid = new Ulid(smallerGuid);
+            var largerUlid = new Ulid(largerGuid);
+            Assert.AreEqual(-1, smallerUlid.CompareTo(largerUlid));
+        }
+
+        [TestMethod]
         public void Ulid_ToString_EncodesCorrectly()
         {
             var target = Ulid.NewUlid(KNOWNTIMESTAMP_DTO, new FakeUlidRng());
@@ -197,7 +226,6 @@ namespace NUlid.Tests
             var maxtime_plusone = "76EZ91ZQ00";
             new Ulid(maxtime_plusone + KNOWNMINRANDOM_STRING);
         }
-
 
 
         [TestMethod]
